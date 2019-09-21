@@ -4,7 +4,7 @@
 
 #ifndef STORAGE_LEVELDB_INCLUDE_EXPORT_H_
 #define STORAGE_LEVELDB_INCLUDE_EXPORT_H_
-
+//LEVELDB_EXPORT宏处理共享库的到处符号，好实用这个库的导入符号
 #if !defined(LEVELDB_EXPORT)
 
 #if defined(LEVELDB_SHARED_LIBRARY)
