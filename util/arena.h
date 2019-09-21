@@ -13,6 +13,7 @@
 
 namespace leveldb {
 
+//Arena是一个内聚的类 没有依赖
 class Arena {
  public:
   Arena();
@@ -39,8 +40,8 @@ class Arena {
   char* AllocateNewBlock(size_t block_bytes);
 
   // Allocation state
-  char* alloc_ptr_;
-  size_t alloc_bytes_remaining_;
+  char* alloc_ptr_;//指向最后分配的地址
+  size_t alloc_bytes_remaining_;//还剩下未分配的内存
 
   // Array of new[] allocated memory blocks
   std::vector<char*> blocks_;
@@ -57,12 +58,14 @@ inline char* Arena::Allocate(size_t bytes) {
   // 0-byte allocations, so we disallow them here (we don't need
   // them for our internal use).
   assert(bytes > 0);
+  //需要的内存小于还剩下的直接就返回alloc_ptr_
   if (bytes <= alloc_bytes_remaining_) {
     char* result = alloc_ptr_;
     alloc_ptr_ += bytes;
     alloc_bytes_remaining_ -= bytes;
     return result;
   }
+  //需要的内存不够
   return AllocateFallback(bytes);
 }
 
