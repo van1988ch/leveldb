@@ -7,6 +7,10 @@
 // * In addition we support variable length "varint" encoding
 // * Strings are encoded prefixed by their length in varint format
 
+///////////////////////////////////////
+//coding是序列化平台无关的字节码的辅助函数
+///////////////////////////////////////
+
 #ifndef STORAGE_LEVELDB_UTIL_CODING_H_
 #define STORAGE_LEVELDB_UTIL_CODING_H_
 
@@ -59,6 +63,7 @@ char* EncodeVarint64(char* dst, uint64_t value);
 // Lower-level versions of Put... that write directly into a character buffer
 // REQUIRES: dst has enough space for the value being written
 
+//优化了小端的情况。老的版本应该都是实用平台无关的按字节赋值的慢的方式
 inline void EncodeFixed32(char* dst, uint32_t value) {
   uint8_t* const buffer = reinterpret_cast<uint8_t*>(dst);
 
@@ -77,6 +82,7 @@ inline void EncodeFixed32(char* dst, uint32_t value) {
   buffer[3] = static_cast<uint8_t>(value >> 24);
 }
 
+//优化了小端的情况。老的版本应该都是实用平台无关的按字节赋值的慢的方式
 inline void EncodeFixed64(char* dst, uint64_t value) {
   uint8_t* const buffer = reinterpret_cast<uint8_t*>(dst);
 
@@ -101,7 +107,7 @@ inline void EncodeFixed64(char* dst, uint64_t value) {
 
 // Lower-level versions of Get... that read directly from a character buffer
 // without any bounds checking.
-
+//优化了小端的情况。老的版本应该都是实用平台无关的按字节赋值的慢的方式
 inline uint32_t DecodeFixed32(const char* ptr) {
   const uint8_t* const buffer = reinterpret_cast<const uint8_t*>(ptr);
 
@@ -134,6 +140,7 @@ inline uint64_t DecodeFixed64(const char* ptr) {
 
   // Platform-independent code.
   // Clang and gcc optimize this to a single mov / ldr instruction.
+  //优化了小端的情况。老的版本应该都是实用平台无关的按字节赋值的慢的方式
   return (static_cast<uint64_t>(buffer[0])) |
          (static_cast<uint64_t>(buffer[1]) << 8) |
          (static_cast<uint64_t>(buffer[2]) << 16) |

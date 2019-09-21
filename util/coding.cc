@@ -18,6 +18,7 @@ void PutFixed64(std::string* dst, uint64_t value) {
   dst->append(buf, sizeof(buf));
 }
 
+//编码可变的字节码,紧凑型的编码
 char* EncodeVarint32(char* dst, uint32_t v) {
   // Operate on characters as unsigneds
   uint8_t* ptr = reinterpret_cast<uint8_t*>(dst);
@@ -68,7 +69,7 @@ void PutVarint64(std::string* dst, uint64_t v) {
   char* ptr = EncodeVarint64(buf, v);
   dst->append(buf, ptr - buf);
 }
-
+//插入一个字符串
 void PutLengthPrefixedSlice(std::string* dst, const Slice& value) {
   PutVarint32(dst, value.size());
   dst->append(value.data(), value.size());
