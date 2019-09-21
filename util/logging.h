@@ -5,6 +5,12 @@
 // Must not be included from any .h files to avoid polluting the namespace
 // with macros.
 
+
+///////////////////////
+//为了打印日志准备的辅助函数
+///////////////////////
+
+
 #ifndef STORAGE_LEVELDB_UTIL_LOGGING_H_
 #define STORAGE_LEVELDB_UTIL_LOGGING_H_
 
