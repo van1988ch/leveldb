@@ -12,6 +12,8 @@
 // non-const method, all threads accessing the same Slice must use
 // external synchronization.
 
+//slice可以有效的保证字符串的重复使用，减小不必要的内存消耗
+
 #ifndef STORAGE_LEVELDB_INCLUDE_SLICE_H_
 #define STORAGE_LEVELDB_INCLUDE_SLICE_H_
 
