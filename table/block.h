@@ -15,6 +15,7 @@ namespace leveldb {
 struct BlockContents;
 class Comparator;
 
+//解码有block_builder编码的块数据
 class Block {
  public:
   // Initialize the block with the specified contents.

@@ -20,6 +20,7 @@ void BlockHandle::EncodeTo(std::string* dst) const {
   PutVarint64(dst, size_);
 }
 
+//从文件中读取头部的2个64字节的offset size
 Status BlockHandle::DecodeFrom(Slice* input) {
   if (GetVarint64(input, &offset_) && GetVarint64(input, &size_)) {
     return Status::OK();
@@ -28,6 +29,7 @@ Status BlockHandle::DecodeFrom(Slice* input) {
   }
 }
 
+//对应文件的尾部增加的meta数据
 void Footer::EncodeTo(std::string* dst) const {
   const size_t original_size = dst->size();
   metaindex_handle_.EncodeTo(dst);
@@ -96,7 +98,7 @@ Status ReadBlock(RandomAccessFile* file, const ReadOptions& options,
 
   switch (data[n]) {
     case kNoCompression:
-      if (data != buf) {
+      if (data != buf) {//这个分支可能不会走到，有RandomAccessFile的实现决定。如果data是在RandomAccessFile中生成的就删除buf，用RandomAccessFile返回的数据
         // File implementation gave us pointer to some other data.
         // Use it directly under the assumption that it will be live
         // while the file is open.
