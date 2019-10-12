@@ -330,7 +330,7 @@ Status DBImpl::Recover(VersionEdit* edit, bool* save_manifest) {
   // Note that PrevLogNumber() is no longer used, but we pay
   // attention to it in case we are recovering a database
   // produced by an older version of leveldb.
-  const uint64_t min_log = versions_->LogNumber();
+  const uint64_t min_log = versions_->LogNumber();//从日志文件中恢复数据
   const uint64_t prev_log = versions_->PrevLogNumber();
   std::vector<std::string> filenames;
   s = env_->GetChildren(dbname_, &filenames);
@@ -372,12 +372,12 @@ Status DBImpl::Recover(VersionEdit* edit, bool* save_manifest) {
   }
 
   if (versions_->LastSequence() < max_sequence) {
-    versions_->SetLastSequence(max_sequence);
+    versions_->SetLastSequence(max_sequence);//重置恢复到最新的那条数据
   }
 
   return Status::OK();
 }
-
+//从日志文件中恢复
 Status DBImpl::RecoverLogFile(uint64_t log_number, bool last_log,
                               bool* save_manifest, VersionEdit* edit,
                               SequenceNumber* max_sequence) {
@@ -1199,9 +1199,10 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
   w.sync = options.sync;
   w.done = false;
 
+  //放到写入队列
   MutexLock l(&mutex_);
   writers_.push_back(&w);
-  while (!w.done && &w != writers_.front()) {
+  while (!w.done && &w != writers_.front()) {//如果writers_现在正在处理当前的任务就不等待，不让就等待
     w.cv.Wait();
   }
   if (w.done) {
@@ -1222,17 +1223,17 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
     // and protects against concurrent loggers and concurrent writes
     // into mem_.
     {
-      mutex_.Unlock();
-      status = log_->AddRecord(WriteBatchInternal::Contents(updates));
+      mutex_.Unlock();//写入日志文件期间,可能有其他写入数据到writers_这个队列中，所有需要在后面检查是否处理完成
+      status = log_->AddRecord(WriteBatchInternal::Contents(updates));//将记录增加到日志文件中
       bool sync_error = false;
-      if (status.ok() && options.sync) {
+      if (status.ok() && options.sync) {//如果配置要求实时同步log日志文件，就立即同步一次，防止丢数据
         status = logfile_->Sync();
         if (!status.ok()) {
           sync_error = true;
         }
       }
       if (status.ok()) {
-        status = WriteBatchInternal::InsertInto(updates, mem_);
+        status = WriteBatchInternal::InsertInto(updates, mem_);//往memtable中增加这条数据
       }
       mutex_.Lock();
       if (sync_error) {
@@ -1244,22 +1245,23 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
     }
     if (updates == tmp_batch_) tmp_batch_->Clear();
 
-    versions_->SetLastSequence(last_sequence);
+    versions_->SetLastSequence(last_sequence);//完成
   }
 
-  while (true) {
+  while (true) {//广播我这个记录处理完成了 可以处理下一个数据了
+                //写入日志文件期间,可能有其他写入数据到writers_这个队列中，所有需要在后面检查是否处理完成
     Writer* ready = writers_.front();
     writers_.pop_front();
     if (ready != &w) {
       ready->status = status;
-      ready->done = true;
-      ready->cv.Signal();
+      ready->done = true;//设置下一个数据可以处理了
+      ready->cv.Signal();//
     }
     if (ready == last_writer) break;
   }
 
   // Notify new head of write queue
-  if (!writers_.empty()) {
+  if (!writers_.empty()) {//把这条数据之前的和本条数据处理完，如果还有就发送信号，让他可以处理了
     writers_.front()->cv.Signal();
   }
 
