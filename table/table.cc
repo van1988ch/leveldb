@@ -34,7 +34,7 @@ struct Table::Rep {
   BlockHandle metaindex_handle;  // Handle to metaindex_block: saved from footer
   Block* index_block;
 };
-
+//解析table的数据
 Status Table::Open(const Options& options, RandomAccessFile* file,
                    uint64_t size, Table** table) {
   *table = nullptr;

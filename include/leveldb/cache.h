@@ -24,7 +24,7 @@
 #include "leveldb/slice.h"
 
 namespace leveldb {
-
+//LRUCache
 class LEVELDB_EXPORT Cache;
 
 // Create a new cache with a fixed size capacity.  This implementation

@@ -541,7 +541,7 @@ Status DBImpl::WriteLevel0Table(MemTable* mem, VersionEdit* edit,
   stats_[level].Add(stats);
   return s;
 }
-
+//把内存的数据刷新到硬盘
 void DBImpl::CompactMemTable() {
   mutex_.AssertHeld();
   assert(imm_ != nullptr);
@@ -655,6 +655,7 @@ void DBImpl::RecordBackgroundError(const Status& s) {
   }
 }
 
+//是一个递归调用
 void DBImpl::MaybeScheduleCompaction() {
   mutex_.AssertHeld();
   if (background_compaction_scheduled_) {
@@ -1210,7 +1211,7 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* updates) {
   }
 
   // May temporarily unlock and wait.
-  Status status = MakeRoomForWrite(updates == nullptr);
+  Status status = MakeRoomForWrite(updates == nullptr);//查看_mem是否够写，不够就切换到_mem到imm_
   uint64_t last_sequence = versions_->LastSequence();
   Writer* last_writer = &w;
   if (status.ok() && updates != nullptr) {  // nullptr batch is for compactions
