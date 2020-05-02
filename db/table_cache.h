@@ -19,7 +19,7 @@
 namespace leveldb {
 
 class Env;
-
+//table cache是用lru策略来管理已经被查找过的table
 class TableCache {
  public:
   TableCache(const std::string& dbname, const Options& options, int entries);

@@ -54,7 +54,7 @@ bool Reader::SkipToInitialBlock() {
 }
 
 bool Reader::ReadRecord(Slice* record, std::string* scratch) {
-  if (last_record_offset_ < initial_offset_) {
+  if (last_record_offset_ < initial_offset_) {//如果要读取的位置大于最新的位置，跳过前面的部分
     if (!SkipToInitialBlock()) {
       return false;
     }
@@ -67,9 +67,9 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
   // 0 is a dummy value to make compilers happy
   uint64_t prospective_record_offset = 0;
 
-  Slice fragment;
+  Slice fragment;//数据分片
   while (true) {
-    const unsigned int record_type = ReadPhysicalRecord(&fragment);
+    const unsigned int record_type = ReadPhysicalRecord(&fragment);//record_type分片类型
 
     // ReadPhysicalRecord may have only had an empty trailer remaining in its
     // internal buffer. Calculate the offset of the next physical record now
@@ -89,7 +89,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
     }
 
     switch (record_type) {
-      case kFullType:
+      case kFullType://不分片
         if (in_fragmented_record) {
           // Handle bug in earlier versions of log::Writer where
           // it could emit an empty kFirstType record at the tail end
@@ -105,7 +105,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
         last_record_offset_ = prospective_record_offset;
         return true;
 
-      case kFirstType:
+      case kFirstType://开始的分片
         if (in_fragmented_record) {
           // Handle bug in earlier versions of log::Writer where
           // it could emit an empty kFirstType record at the tail end
@@ -130,7 +130,7 @@ bool Reader::ReadRecord(Slice* record, std::string* scratch) {
         break;
 
       case kLastType:
-        if (!in_fragmented_record) {
+        if (!in_fragmented_record) {//最后一个分片
           ReportCorruption(fragment.size(),
                            "missing start of fragmented record(2)");
         } else {
@@ -188,18 +188,18 @@ void Reader::ReportDrop(uint64_t bytes, const Status& reason) {
 
 unsigned int Reader::ReadPhysicalRecord(Slice* result) {
   while (true) {
-    if (buffer_.size() < kHeaderSize) {
-      if (!eof_) {
+    if (buffer_.size() < kHeaderSize) {//读的数据必须大于头
+      if (!eof_) {//不到结尾 一直读
         // Last read was a full read, so this is a trailer to skip
         buffer_.clear();
-        Status status = file_->Read(kBlockSize, &buffer_, backing_store_);
+        Status status = file_->Read(kBlockSize, &buffer_, backing_store_);//slice的buffer_底层指向backing_store_
         end_of_buffer_offset_ += buffer_.size();
         if (!status.ok()) {
           buffer_.clear();
           ReportDrop(kBlockSize, status);
           eof_ = true;
           return kEof;
-        } else if (buffer_.size() < kBlockSize) {
+        } else if (buffer_.size() < kBlockSize) {//读到的数据不满足kBlockSize，读到末尾了
           eof_ = true;
         }
         continue;
@@ -244,7 +244,7 @@ unsigned int Reader::ReadPhysicalRecord(Slice* result) {
     if (checksum_) {
       uint32_t expected_crc = crc32c::Unmask(DecodeFixed32(header));
       uint32_t actual_crc = crc32c::Value(header + 6, 1 + length);
-      if (actual_crc != expected_crc) {
+      if (actual_crc != expected_crc) {//crc校验 不一致 数据损坏了
         // Drop the rest of the buffer since "length" itself may have
         // been corrupted and if we trust it, we could find some
         // fragment of a real log record that just happens to look

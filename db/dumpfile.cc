@@ -51,6 +51,7 @@ class CorruptionReporter : public log::Reader::Reporter {
 };
 
 // Print contents of a log file. (*func)() is called on every record.
+//从log日志中导出数据
 Status PrintLogContents(Env* env, const std::string& fname,
                         void (*func)(uint64_t, Slice, WritableFile*),
                         WritableFile* dst) {
@@ -63,9 +64,9 @@ Status PrintLogContents(Env* env, const std::string& fname,
   reporter.dst_ = dst;
   log::Reader reader(file, &reporter, true, 0);
   Slice record;
-  std::string scratch;
+  std::string scratch;//为了把数据hold住，使用都是用slice
   while (reader.ReadRecord(&record, &scratch)) {
-    (*func)(reader.LastRecordOffset(), record, dst);
+    (*func)(reader.LastRecordOffset(), record, dst);//通知上次读取到哪里了
   }
   delete file;
   return Status::OK();
@@ -94,6 +95,7 @@ class WriteBatchItemPrinter : public WriteBatch::Handler {
 
 // Called on every log record (each one of which is a WriteBatch)
 // found in a kLogFile.
+//打印记录，解析并记录record的部分内容
 static void WriteBatchPrinter(uint64_t pos, Slice record, WritableFile* dst) {
   std::string r = "--- offset ";
   AppendNumberTo(&r, pos);

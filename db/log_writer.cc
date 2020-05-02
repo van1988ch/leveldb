@@ -48,7 +48,7 @@ Status Writer::AddRecord(const Slice& slice) {
       if (leftover > 0) {
         // Fill the trailer (literal below relies on kHeaderSize being 7)
         static_assert(kHeaderSize == 7, "");
-        dest_->Append(Slice("\x00\x00\x00\x00\x00\x00", leftover));
+        dest_->Append(Slice("\x00\x00\x00\x00\x00\x00", leftover));//小于7字节都填充0，=7字节直接就增加一个0的段开始
       }
       block_offset_ = 0;
     }
@@ -60,7 +60,7 @@ Status Writer::AddRecord(const Slice& slice) {
     const size_t fragment_length = (left < avail) ? left : avail;
 
     RecordType type;
-    const bool end = (left == fragment_length);
+    const bool end = (left == fragment_length);//是否分片
     if (begin && end) {
       type = kFullType;
     } else if (begin) {

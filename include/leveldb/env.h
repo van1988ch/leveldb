@@ -190,6 +190,7 @@ class LEVELDB_EXPORT Env {
 };
 
 // A file abstraction for reading sequentially through a file
+//顺序读文件接口
 class LEVELDB_EXPORT SequentialFile {
  public:
   SequentialFile() = default;

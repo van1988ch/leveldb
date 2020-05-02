@@ -87,7 +87,7 @@ class FileState {
     size_t block = static_cast<size_t>(offset / kBlockSize);
     size_t block_offset = offset % kBlockSize;
     size_t bytes_to_copy = n;
-    char* dst = scratch;
+    char* dst = scratch;//scratch:擦除(数据等)
 
     while (bytes_to_copy > 0) {
       size_t avail = kBlockSize - block_offset;
@@ -140,16 +140,16 @@ class FileState {
   enum { kBlockSize = 8 * 1024 };
 
   // Private since only Unref() should be used to delete it.
-  ~FileState() { Truncate(); }
+  ~FileState() { Truncate(); }//delete this不允许被外界调用
 
   port::Mutex refs_mutex_;
   int refs_ GUARDED_BY(refs_mutex_);
 
-  mutable port::Mutex blocks_mutex_;
+  mutable port::Mutex blocks_mutex_;//mutable易变的 在const中也可以改变
   std::vector<char*> blocks_ GUARDED_BY(blocks_mutex_);
   uint64_t size_ GUARDED_BY(blocks_mutex_);
 };
-
+//顺序读文件操作实现
 class SequentialFileImpl : public SequentialFile {
  public:
   explicit SequentialFileImpl(FileState* file) : file_(file), pos_(0) {
@@ -229,7 +229,7 @@ class InMemoryEnv : public EnvWrapper {
     }
   }
 
-  // Partial implementation of the Env interface.
+  // Partial（局部的） implementation of the Env interface.
   Status NewSequentialFile(const std::string& fname,
                            SequentialFile** result) override {
     MutexLock lock(&mutex_);

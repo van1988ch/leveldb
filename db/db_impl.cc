@@ -497,7 +497,7 @@ Status DBImpl::RecoverLogFile(uint64_t log_number, bool last_log,
 
   return status;
 }
-
+//将memtable写入到level0的的文件中。level0是在内存中
 Status DBImpl::WriteLevel0Table(MemTable* mem, VersionEdit* edit,
                                 Version* base) {
   mutex_.AssertHeld();

@@ -16,7 +16,7 @@ namespace leveldb {
 
 class InternalKeyComparator;
 class MemTableIterator;
-
+//skiplist管理的memtable
 class MemTable {
  public:
   // MemTables are reference counted.  The initial reference count
