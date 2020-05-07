@@ -100,6 +100,8 @@ LEVELDB_EXPORT char* leveldb_get(leveldb_t* db,
 LEVELDB_EXPORT leveldb_iterator_t* leveldb_create_iterator(
     leveldb_t* db, const leveldb_readoptions_t* options);
 
+//快照为了是一个seq，保证你每次读取的是小于这个seq前的静态快照。所以是线程安全的只读快照。
+//放到get的option中，可以来使用
 LEVELDB_EXPORT const leveldb_snapshot_t* leveldb_create_snapshot(leveldb_t* db);
 
 LEVELDB_EXPORT void leveldb_release_snapshot(
