@@ -66,7 +66,7 @@ char* Arena::AllocateNewBlock(size_t block_bytes) {
   char* result = new char[block_bytes];
   blocks_.push_back(result);
   memory_usage_.fetch_add(block_bytes + sizeof(char*),
-                          std::memory_order_relaxed);
+                          std::memory_order_relaxed);//速度快。默认是memory_order_seq_cst，速度慢
   return result;
 }
 
