@@ -42,8 +42,8 @@ namespace {
 struct LRUHandle {
   void* value;
   void (*deleter)(const Slice&, void* value);
-  LRUHandle* next_hash;
-  LRUHandle* next;
+  LRUHandle* next_hash;//在hash表的桶链表
+  LRUHandle* next;//在list中的下一个
   LRUHandle* prev;
   size_t charge;  // TODO(opt): Only allow uint32_t?
   size_t key_length;
@@ -159,6 +159,9 @@ class LRUCache {
   Cache::Handle* Insert(const Slice& key, uint32_t hash, void* value,
                         size_t charge,
                         void (*deleter)(const Slice& key, void* value));
+
+  //Lookup查找会返回一个Cache::Handle，Cache::Handle的使用的应用计数加一。
+  //不使用了以后需要调用Release
   Cache::Handle* Lookup(const Slice& key, uint32_t hash);
   void Release(Cache::Handle* handle);
   void Erase(const Slice& key, uint32_t hash);
@@ -185,13 +188,13 @@ class LRUCache {
   // Dummy head of LRU list.
   // lru.prev is newest entry, lru.next is oldest entry.
   // Entries have refs==1 and in_cache==true.
-  LRUHandle lru_ GUARDED_BY(mutex_);
+  LRUHandle lru_ GUARDED_BY(mutex_);//不在LUR的in_use_中但是还在外面被使用。应用计数不为0的。暂时移到这个队列里面
 
   // Dummy head of in-use list.
   // Entries are in use by clients, and have refs >= 2 and in_cache==true.
-  LRUHandle in_use_ GUARDED_BY(mutex_);
+  LRUHandle in_use_ GUARDED_BY(mutex_);//队列
 
-  HandleTable table_ GUARDED_BY(mutex_);
+  HandleTable table_ GUARDED_BY(mutex_);//hash_table
 };
 
 LRUCache::LRUCache() : capacity_(0), usage_(0) {
