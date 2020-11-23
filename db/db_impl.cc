@@ -656,6 +656,7 @@ void DBImpl::RecordBackgroundError(const Status& s) {
 }
 
 //是一个递归调用
+//有工作做就做，没有就推出了
 void DBImpl::MaybeScheduleCompaction() {
   mutex_.AssertHeld();
   if (background_compaction_scheduled_) {
@@ -1109,6 +1110,10 @@ int64_t DBImpl::TEST_MaxNextLevelOverlappingBytes() {
   return versions_->MaxNextLevelOverlappingBytes();
 }
 
+// 读的时候获取快照。然后可以基于MVCC的并发读写。
+// 读-写操作可以并发
+// 读是在老的版本Version上的。
+// 写在新的版本上操作的
 Status DBImpl::Get(const ReadOptions& options, const Slice& key,
                    std::string* value) {
   Status s;
